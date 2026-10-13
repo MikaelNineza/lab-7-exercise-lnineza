@@ -31,6 +31,12 @@ public:
 
         return id;
     }
+
+    bool validEntity(EntityID id) const {
+        return mValid.size() > id && mValid[id];
+    }
+
+    
 private:
     string name = "FirstEM";
     std::tuple<std::vector<Registry<ComponentTypes>...> mRegistries;
