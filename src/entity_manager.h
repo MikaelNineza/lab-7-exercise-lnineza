@@ -36,7 +36,16 @@ public:
         return mValid.size() > id && mValid[id];
     }
 
-    
+    template <typename ComponentType> 
+    bool hasComponent(EntityID id) const {
+        constexpr int temp = Pack<ComponentTypes...>::index<ComponentType>;
+        static_assert(temp != -1, "Component Type does not exist.");
+        constexpr EntityID typeIdx = static_cast<EntityID>(temp);
+        static_assert(validEntity(typeIdx));
+        return mComponentIndicies[typeIdx][id] != INVALID_COMPONENT_INDEX;
+    }
+
+
 private:
     string name = "FirstEM";
     std::tuple<std::vector<Registry<ComponentTypes>...> mRegistries;
