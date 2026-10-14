@@ -15,7 +15,7 @@ template <typename... ComponentTypes>
 class EntityManager {
 public:
     template <typename ComponentType>
-    constexpr EntityID componentTypeToIndex() {
+    static constexpr EntityID componentTypeToIndex() {
         constexpr int temp = Pack<ComponentTypes...>::template index<ComponentType>;
         static_assert(temp != -1, "Component Type does not exist.");
         return static_cast<EntityID>(temp);
@@ -46,12 +46,12 @@ public:
     template <typename ComponentType> 
     bool hasComponent(EntityID id) const {
         constexpr EntityID typeIdx = componentTypeToIndex<ComponentType>();
-        static_assert(validEntity(id));
+        assert(validEntity(id));
         return mComponentIndicies[typeIdx][id] != INVALID_COMPONENT_INDEX;
     }
 
     template <typename ComponentType>
-    ComponentType& getComponent(EntityID id) const {
+    ComponentType& getComponent(EntityID id) {
         constexpr EntityID typeIdx = componentTypeToIndex<ComponentType>();
         assert(hasComponent<ComponentType>(id));
         auto& registry = std::get<typeIdx>(mRegistries);
@@ -60,11 +60,12 @@ public:
 
     template <typename ComponentType>
     void addComponent(EntityID id, ComponentType&& component) {
-        using T = std::remove_reference_t<ComponentType>;
+        // https://stackoverflow.com/questions/15887144/stdremove-const-with-const-references#comment140030765_15887250
+        using T = std::remove_cvref_t<ComponentType>;
         constexpr EntityID typeIdx = componentTypeToIndex<T>();
-        static_assert(validEntity(id));
-        static_assert(!hasComponent<T>(id));
-        Registry<ComponentType> registry = std::get<typeIdx>(mRegistries);
+        assert(validEntity(id));
+        assert(!hasComponent<T>(id));
+        Registry<T>& registry = std::get<typeIdx>(mRegistries);
         mComponentIndicies[typeIdx][id] = registry.store(std::forward<ComponentType>(component));
     }
 
