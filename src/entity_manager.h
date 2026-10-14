@@ -58,6 +58,16 @@ public:
         return registry[mComponentIndicies[typeIdx][id]];
     }
 
+    template <typename ComponentType>
+    void addComponent(EntityID id, ComponentType&& component) {
+        using T = std::remove_reference_t<ComponentType>;
+        constexpr EntityID typeIdx = componentTypeToIndex<T>();
+        static_assert(validEntity(id));
+        static_assert(!hasComponent<T>(id));
+        Registry<ComponentType> registry = std::get<typeIdx>(mRegistries);
+        mComponentIndicies[typeIdx][id] = registry.store(std::forward<ComponentType>(component));
+    }
+
 private:
     string name = "FirstEM";
     std::tuple<Registry<ComponentTypes>...> mRegistries;
