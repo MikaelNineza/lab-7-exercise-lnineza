@@ -6,17 +6,18 @@
 template <typename T>
 class Registry {
 public:
-    size_t store(T&& t) {
+    template <typename U>
+    size_t store(U&& t) {
         size_t id;
         if (!mFreeList.empty()) {
             id = mFreeList.back();
             mFreeList.pop_back();
-            mData[id] = std::forward<T>(t);
+            mData[id] = std::forward<U>(t);
             mValid[id] = true;
         }
         else {
             id = mData.size();
-            mData.push_back(std::forward<T>(t));
+            mData.push_back(std::forward<U>(t));
             mValid.push_back(true);
         }
 
@@ -43,11 +44,11 @@ public:
         return mData[id];
     }
 
-    bool valid(size_t id) {
+    bool valid(size_t id) const {
         return mValid.size() > id && mValid[id];
     }
 
-    size_t size() {
+    size_t size() const {
         return mValidCount;
     }
 
