@@ -51,7 +51,7 @@ public:
     }
 
     template <typename ComponentType>
-    ComponentType& getComponent(EntityI id) const {
+    ComponentType& getComponent(EntityID id) const {
         constexpr EntityID typeIdx = componentTypeToIndex<ComponentType>();
         assert(hasComponent<ComponentType>(id));
         auto& registry = std::get<typeIdx>(mRegistries);
@@ -69,7 +69,7 @@ public:
     }
 
 private:
-    string name = "FirstEM";
+    std::string name = "FirstEM";
     std::tuple<Registry<ComponentTypes>...> mRegistries;
     std::array<std::vector<EntityID>, sizeof...(ComponentTypes)> mComponentIndicies;
     std::vector<bool> mValid;
