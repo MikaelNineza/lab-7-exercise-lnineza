@@ -14,6 +14,13 @@ using EntityID = size_t;
 template <typename... ComponentTypes>
 class EntityManager {
 public:
+    template <typename ComponentType>
+    constexpr EntityID componentTypeToIndex() {
+        constexpr int temp = Pack<ComponentTypes...>::template index<ComponentType>;
+        static_assert(temp != -1, "Component Type does not exist.");
+        return static_cast<EntityID>(temp);
+    }
+
     EntityID createEntity() {
         EntityID id;
         if (!mFreeList.empty()) {
@@ -38,17 +45,22 @@ public:
 
     template <typename ComponentType> 
     bool hasComponent(EntityID id) const {
-        constexpr int temp = Pack<ComponentTypes...>::index<ComponentType>;
-        static_assert(temp != -1, "Component Type does not exist.");
-        constexpr EntityID typeIdx = static_cast<EntityID>(temp);
-        static_assert(validEntity(typeIdx));
+        constexpr EntityID typeIdx = componentTypeToIndex<ComponentType>();
+        static_assert(validEntity(id));
         return mComponentIndicies[typeIdx][id] != INVALID_COMPONENT_INDEX;
     }
 
+    template <typename ComponentType>
+    ComponentType& getComponent(EntityI id) const {
+        constexpr EntityID typeIdx = componentTypeToIndex<ComponentType>();
+        assert(hasComponent<ComponentType>(id));
+        auto& registry = std::get<typeIdx>(mRegistries);
+        return registry[mComponentIndicies[typeIdx][id]];
+    }
 
 private:
     string name = "FirstEM";
-    std::tuple<std::vector<Registry<ComponentTypes>...> mRegistries;
+    std::tuple<Registry<ComponentTypes>...> mRegistries;
     std::array<std::vector<EntityID>, sizeof...(ComponentTypes)> mComponentIndicies;
     std::vector<bool> mValid;
     std::vector<EntityID> mFreeList;
